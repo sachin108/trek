@@ -10,8 +10,8 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, relationship, mapped_column
 class Base(DeclarativeBase):
     pass
 
-class TimeStamp(DeclarativeBase):
-    __tablename__ = "timestamp"
+class TimeStamp(Base):
+    __abstract__ = True
     created_at : Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at : Mapped[datetime] = mapped_column(DateTime(timezone=True),server_default=func.now(), onupdate=func.now())
 
@@ -28,7 +28,7 @@ class OrderStatus(str, enum.Enum):
     COMPLETED="COMPLETED"
     CANCELLED="CANCELLED"
 
-class User(DeclarativeBase, TimeStamp):
+class User(TimeStamp):
     __tablename__ = "users"
     id : Mapped[int] = mapped_column(primary_key=True)
     username : Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
@@ -39,10 +39,10 @@ class User(DeclarativeBase, TimeStamp):
     holdings : Mapped[List["Holding"]] = relationship("Holding", back_populates="user", cascade="all, delete-orphan")
     orders : Mapped[List["Order"]] = relationship("Order", back_populates="user", cascade="all, delete-orphan")
 
-class Holding(DeclarativeBase, TimeStamp):
+class Holding(TimeStamp):
     __tablename__  = "holdings"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), ondelete="CASCADE")
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     symbol : Mapped[str] = mapped_column(String(15), index=True, nullable=False)
     exchange : Mapped[str] = mapped_column(String(6), nullable=False)
 
@@ -55,10 +55,10 @@ class Holding(DeclarativeBase, TimeStamp):
         UniqueConstraint("user_id", "symbol", "exchange", name="unique_user_symbol_exchange_holding"),
     )
 
-class Order(DeclarativeBase, TimeStamp):
+class Order(TimeStamp):
     __tablename__ = "orders"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    user_id : Mapped[int] = mapped_column(ForeignKey("user.id"), ondelete="CASCADE")
+    user_id : Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     symbol : Mapped[str] = mapped_column(String(15), index=True, nullable=False)
     execution_type : Mapped[str] = mapped_column(Enum(OrderExecutionType), nullable=False)
     order_type : Mapped[str] = mapped_column(Enum(OrderType), nullable=False)

@@ -1,0 +1,11 @@
+fastAPI==0.141.1
+uvicorn==0.52.4
+sqlalchemy==2.0.52
+psycopg2==2.9.12
+pydantic_settings==2.15.0
+email-validator==2.3.0
+python-dotenv==1.2.3
+PyJWT==2.13.0
+passlib==1.7.4
+bcrypt==4.0.1
+rich==15.0.0

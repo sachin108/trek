@@ -3,9 +3,8 @@ from decimal import Decimal
 from typing import Optional, List
 
 from pydantic import BaseModel, Field, EmailStr, ConfigDict
-from sqlalchemy.orm import DeclarativeBase
 
-from trek.models import OrderType, OrderExecutionType, OrderStatus
+from .models import OrderType, OrderExecutionType, OrderStatus
 
 
 # ------- User & Auth ------
