@@ -37,7 +37,7 @@ class Token(BaseModel):
     token_type: str = 'bearer'
 
 # ------- Stock search and Quote ------
-class StockSearchResults(BaseModel):
+class StockSearchResult(BaseModel):
     symbol: str
     name: str
     exchange: str

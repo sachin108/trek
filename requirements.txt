@@ -11,3 +11,5 @@ bcrypt==4.0.1
 rich==15.0.0
 alembic==1.19.2
 python-multipart==0.0.32
+yfinance==1.7.0
+httpx==0.28.1
