@@ -29,3 +29,6 @@ async  def search_stocks(stock_name:str) -> List[StockSearchResult]:
             ))
 
     return results
+
+async def get_stock_quote(stock_name:str) -> StockSearchResult:
+    pass
