@@ -20,7 +20,7 @@ def create_access_token(subject: Any, expires_delta: timedelta = None):
         expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     payload = {
-        "sub": subject,
+        "sub": str(subject),
         "exp": expire,
         "iat": datetime.now(timezone.utc),
     }

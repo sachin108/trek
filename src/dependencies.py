@@ -22,10 +22,10 @@ def get_current_user( token: Annotated[str, Depends(oauth2_scheme)],
 
     try:
         payload=jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        user_id_str: str = payload.get("sub")
-        if user_id_str is None:
+        user_id = payload.get("sub")
+        if user_id is None:
             raise credentials_exception
-        user_id=int(user_id_str)
+        user_id = int(user_id)
 
     except (jwt.PyJWTError, ValueError) as e:
         print(f"error in get_current_user {e}")
