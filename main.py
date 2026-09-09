@@ -1,10 +1,7 @@
 from fastapi import FastAPI
-
-from src.database import engine
-from src.models import Base
 from src.routers import auth
 
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine) - no need of this if we are using alembic to track and apply DB changes
 
 app=FastAPI(title="paper trading app")
 

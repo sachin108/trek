@@ -15,16 +15,16 @@ from src.security import hash_password, verify_password, create_access_token
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/signup", response_model=UserProfileResponse, status_code=status.HTTP_201_CREATED)
-def signup(user_in:UserCreate, db:Annotated[Session, Depends(get_db)]):
+def signup(user:UserCreate, db:Annotated[Session, Depends(get_db)]):
     # check if username or email already exists
-    existing_user = db.scalar(select(User).where(or_(User.username == user_in.username, User.email == user_in.email)))
+    existing_user = db.scalar(select(User).where(or_(User.username == user.username, User.email == user.email)))
     if existing_user:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="username or email already registered")
 
     new_user = User(
-        username=user_in.username,
-        email=user_in.email,
-        password=hash_password(user_in.password),
+        username=user.username,
+        email=user.email,
+        password=hash_password(user.password),
         available_funds=Decimal("10000000.00"),
     )
 
