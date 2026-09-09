@@ -2,16 +2,27 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Optional, List
 
-from pydantic import BaseModel, Field, EmailStr, ConfigDict
+from pydantic import BaseModel, Field, EmailStr, ConfigDict, field_validator, ValidationError
+from pydantic_core import PydanticCustomError
 
 from .models import OrderType, OrderExecutionType, OrderStatus
-
 
 # ------- User & Auth ------
 class UserCreate(BaseModel):
     username: str = Field(..., min_length=5, max_length=50)
-    password: str = Field(..., min_length=12)
+    # ellipsis (...) are placeholder indicating that a field is required and has no default value,
+    # even when you are adding validation rules or metadata via Field()
+
+    password: str
     email: EmailStr
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, password:str):
+        if len(password) < 12:
+            raise PydanticCustomError("string_too_short","Password must be at least 12 characters")
+        return password
+
 
 class UserProfileResponse(BaseModel):
     id : int

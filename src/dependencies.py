@@ -28,6 +28,7 @@ def get_current_user( token: Annotated[str, Depends(oauth2_scheme)],
         user_id=int(user_id_str)
 
     except (jwt.PyJWTError, ValueError) as e:
+        print(f"error in get_current_user {e}")
         raise credentials_exception
 
     user = db.scalar(select(User).where(User.id == user_id))
