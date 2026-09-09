@@ -34,15 +34,20 @@ def signup(user:UserCreate, db:Annotated[Session, Depends(get_db)]):
     return new_user
 
 @router.post("/login", response_model=Token)
-def login(db:Annotated[Session, Depends(get_db)], form_data=Annotated[OAuth2PasswordRequestForm, Depends()]):
-    user = db.scalar(select(User).where(or_(User.username == form_data.username, User.email == form_data.username)))
-    if not user or not verify_password(form_data.password, user.password):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Incorrect username or password",
-                            headers={"WWW-Authenticate": "Bearer"},)
+def login(db:Annotated[Session, Depends(get_db)], form_data:Annotated[OAuth2PasswordRequestForm, Depends()]):
+    # When a route uses OAuth2PasswordRequestForm, FastAPI strictly expects the incoming request to be form data
+    try:
+        user = db.scalar(select(User).where(or_(User.username == form_data.username, User.email == form_data.username)))
+        if not user or not verify_password(form_data.password, user.password):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                                detail="Incorrect username or password",
+                                headers={"WWW-Authenticate": "Bearer"},)
 
-    access_token = create_access_token(subject=user.id)
-    return Token(access_token=access_token, token_type="bearer")
+        access_token = create_access_token(subject=user.id)
+        return Token(access_token=access_token, token_type="bearer")
+    except Exception as e:
+        print(f"Exception occurred in login API: {e}")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,)
 
 @router.get("/me", response_model=UserProfileResponse)
 def get_current_user_profile(current_user:Annotated[User, Depends(get_current_user)]):
