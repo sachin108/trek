@@ -5,7 +5,7 @@ from typing import Optional, List
 from pydantic import BaseModel, Field, EmailStr, ConfigDict, field_validator, ValidationError
 from pydantic_core import PydanticCustomError
 
-from .models import OrderType, OrderExecutionType, OrderStatus
+from .models import OrderSide, OrderType, OrderStatus
 
 # ------- User & Auth ------
 class UserCreate(BaseModel):
@@ -73,17 +73,20 @@ class PortfolioSummaryResponse(BaseModel):
 # Orders (buy / sell)
 class OrderCreate(BaseModel):
     symbol: str
-    order_type: OrderType
-    execution_type: OrderExecutionType = OrderExecutionType.MARKET
+    side: OrderSide = Field(..., alias="order_side")
+    order_type: OrderType = OrderType.MARKET
     quantity: Decimal = Field(..., gt=0)
-    stock_exchange: str
-    limit_price: Optional[Decimal] = Field(..., gt=0)
+    stock_exchange: str = "NASDAQ"
+    limit_price: Optional[Decimal] = Field(gt=0, default=None)
+    model_config = {
+            "populate_by_name": True  # Allows accepting both 'side' and 'order_side'
+        }
 
 class OrderResponse(BaseModel):
     id: int
     symbol: str
+    order_side: OrderSide
     order_type: OrderType
-    execution_type: OrderExecutionType
     status: OrderStatus
     quantity: Decimal
     execution_price: Optional[Decimal]

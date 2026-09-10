@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from src.models import User, Holding, Order, OrderStatus, OrderExecutionType
+from src.models import User, Holding, Order, OrderStatus,  OrderType
 from src.schemas import OrderCreate
 from src.services.market_data import get_stock_quote
 
@@ -32,7 +32,7 @@ async def execute_market_order(user_id:int, order:OrderCreate, db:Session) -> Or
             Holding.user_id == user_id, Holding.symbol == stock_name).with_for_update())
 
     # process BUY
-    if order.order_type.upper() == "BUY":
+    if order.side.upper() == "BUY":
         if user.available_funds < total_cost:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail=f"Insufficient funds. Required: ${total_cost}, Available: ${user.available_funds}")
@@ -53,12 +53,11 @@ async def execute_market_order(user_id:int, order:OrderCreate, db:Session) -> Or
                 symbol=stock_name,
                 quantity=order.quantity,
                 average_price=execution_price,
-                exchange=order.stock_exchange,
             )
             db.add(new_holding)
 
     # process SELL
-    elif order.order_type.upper() == "SELL":
+    elif order.side.upper() == "SELL":
         if not holding or holding.quantity < order.quantity:
             current_quantity = holding.quantity
             raise HTTPException(
@@ -76,10 +75,10 @@ async def execute_market_order(user_id:int, order:OrderCreate, db:Session) -> Or
     order_record = Order(
         user_id=user.id,
         symbol=stock_name,
-        order_type=order.order_type,
-        status=OrderStatus.COMPLETED,
-        execution_type=OrderExecutionType.MARKET,
-        stock_exchange=order.stock_exchange,
+        order_side=order.side,
+        status=OrderStatus.FILLED,
+        order_type=order.order_type or OrderType.MARKET,
+        stock_exchange=order.stock_exchange or "NASDAQ",
         quantity=order.quantity,
         execution_price=execution_price,
         total_amount=total_cost,

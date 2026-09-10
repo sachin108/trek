@@ -15,17 +15,17 @@ class TimeStamp(Base):
     created_at : Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at : Mapped[datetime] = mapped_column(DateTime(timezone=True),server_default=func.now(), onupdate=func.now())
 
-class OrderType(str, enum.Enum):
+class OrderSide(str, enum.Enum):
     BUY="BUY"
     SELL="SELL"
 
-class OrderExecutionType(str, enum.Enum):
+class OrderType(str, enum.Enum):
     MARKET = "MARKET"
     LIMIT = "LIMIT"
 
 class OrderStatus(str, enum.Enum):
     PENDING="PENDING"
-    COMPLETED="COMPLETED"
+    FILLED="FILLED"
     CANCELLED="CANCELLED"
 
 class User(TimeStamp):
@@ -44,7 +44,6 @@ class Holding(TimeStamp):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     symbol : Mapped[str] = mapped_column(String(15), index=True, nullable=False)
-    exchange : Mapped[str] = mapped_column(String(6), nullable=False)
 
     quantity : Mapped[Decimal] = mapped_column(Numeric(precision=10, scale=2), nullable=False)
     average_price : Mapped[Decimal] = mapped_column(Numeric(precision=10, scale=2), nullable=False)
@@ -52,7 +51,7 @@ class Holding(TimeStamp):
     user : Mapped[User] = relationship("User", back_populates="holdings")
 
     __table_args__ = (
-        UniqueConstraint("user_id", "symbol", "exchange", name="unique_user_symbol_exchange_holding"),
+        UniqueConstraint("user_id", "symbol",  name="unique_user_symbol_holding"),
     )
 
 class Order(TimeStamp):
@@ -60,8 +59,8 @@ class Order(TimeStamp):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id : Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     symbol : Mapped[str] = mapped_column(String(15), index=True, nullable=False)
-    execution_type : Mapped[str] = mapped_column(Enum(OrderExecutionType), nullable=False)
     order_type : Mapped[str] = mapped_column(Enum(OrderType), nullable=False)
+    order_side : Mapped[str] = mapped_column(Enum(OrderSide), nullable=False)
     status : Mapped[str] = mapped_column(Enum(OrderStatus), nullable=False)
 
     quantity : Mapped[Decimal] = mapped_column(Numeric(precision=10, scale=2), nullable=False)

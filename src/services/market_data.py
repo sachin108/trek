@@ -2,6 +2,7 @@ import time
 from decimal import Decimal
 from typing import List, Dict, Optional
 import yfinance
+from alembic.command import history
 from starlette.concurrency import run_in_threadpool
 
 from src.schemas import StockSearchResult, StockQuote
@@ -39,11 +40,22 @@ def _fetch_quote_sync(symbol:str):
     ticker=yfinance.Ticker(symbol)
     info=ticker.fast_info
     try:
-        current_price = info.last_price
+        current_price = info.last_price or None
         if current_price is None:
             return None
 
-        previous_close = info.previous_close
+        if current_price is None or current_price <=0:
+            history=ticker.history(period="1d")
+            if not history.empty and "Close" in history:
+                current_price = float(history["Close"].iloc[-1])
+
+        if current_price is None or current_price <= 0:
+            return None
+
+        previous_close = info.previous_close or None
+        if previous_close is None or previous_close <= 0:
+            previous_close = current_price
+
         change = current_price - previous_close
         percent_change = change / previous_close * 100
 

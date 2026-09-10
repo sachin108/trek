@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Paper Trading</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header class="navbar">
+    <h1>📈 Paper Trading</h1>
+    <div id="nav-user-info" class="hidden">
+      <span id="nav-username"></span>
+      <button id="logout-btn" class="btn-secondary">Log Out</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Auth Section -->
+    <section id="auth-section" class="card">
+      <div class="tabs">
+        <button id="tab-login" class="tab-btn active">Log In</button>
+        <button id="tab-signup" class="tab-btn">Sign Up</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form">
+        <label>Username or Email</label>
+        <input type="text" id="login-username" required />
+        <label>Password</label>
+        <input type="password" id="login-password" required />
+        <button type="submit" class="btn-primary">Log In</button>
+      </form>
+
+      <!-- Signup Form -->
+      <form id="signup-form" class="hidden">
+        <label>Username</label>
+        <input type="text" id="signup-username" required minlength="3" />
+        <label>Email</label>
+        <input type="email" id="signup-email" required />
+        <label>Password</label>
+        <input type="password" id="signup-password" required minlength="8" />
+        <button type="submit" class="btn-primary">Create Account ($100k Cash)</button>
+      </form>
+      <div id="auth-error" class="error-msg"></div>
+    </section>
+
+    <!-- App Dashboard (Hidden when logged out) -->
+    <div id="dashboard-section" class="hidden">
+      <!-- Portfolio Metric Cards -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-title">Cash Balance</div>
+          <div id="val-cash" class="metric-value">$0.00</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-title">Holdings Market Value</div>
+          <div id="val-market" class="metric-value">$0.00</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-title">Total Portfolio Net Worth</div>
+          <div id="val-net-worth" class="metric-value">$0.00</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-title">Unrealized P&L</div>
+          <div id="val-pnl" class="metric-value">$0.00</div>
+        </div>
+      </div>
+
+      <div class="trading-layout">
+        <!-- Trade / Search Panel -->
+        <section class="card trade-panel">
+          <h2>Trade Stocks</h2>
+
+          <div class="search-box">
+            <input type="text" id="stock-search-input" placeholder="Search ticker or name (e.g. AAPL)..." />
+            <div id="search-results" class="search-dropdown hidden"></div>
+          </div>
+
+          <form id="order-form">
+            <label>Selected Symbol</label>
+            <input type="text" id="order-symbol" readonly placeholder="Pick a ticker from search" required />
+
+            <label>Action</label>
+            <div class="side-selector">
+              <label><input type="radio" name="side" value="BUY" checked /> Buy</label>
+              <label><input type="radio" name="side" value="SELL" /> Sell</label>
+            </div>
+
+            <label>Quantity</label>
+            <input type="number" id="order-qty" min="0.0001" step="any" placeholder="Shares amount" required />
+
+            <button type="submit" class="btn-primary" id="btn-submit-order">Submit Order</button>
+            <div id="order-feedback" class="feedback-msg"></div>
+          </form>
+        </section>
+
+        <!-- Current Holdings Table -->
+        <section class="card holdings-panel">
+          <h2>Your Holdings</h2>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Symbol</th>
+                  <th>Shares</th>
+                  <th>Avg Price</th>
+                  <th>Current Price</th>
+                  <th>Market Value</th>
+                  <th>P&L ($)</th>
+                  <th>P&L (%)</th>
+                </tr>
+              </thead>
+              <tbody id="holdings-tbody">
+                <tr><td colspan="7" class="empty-state">No positions held.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <!-- Order Ledger History -->
+      <section class="card order-history-panel">
+        <h2>Order Audit History</h2>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Symbol</th>
+                <th>Side</th>
+                <th>Shares</th>
+                <th>Execution Price</th>
+                <th>Total Value</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="orders-tbody">
+              <tr><td colspan="7" class="empty-state">No orders yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
