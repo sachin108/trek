@@ -55,7 +55,7 @@ class StockQuote(BaseModel):
 class HoldingResponse(BaseModel):
     symbol: str
     quantity: Decimal
-    average_buy_price: Decimal
+    average_price: Decimal
     current_price: Optional[Decimal] = None
     market_value: Optional[Decimal] = None
     unrealized_pnl: Optional[Decimal] = None
