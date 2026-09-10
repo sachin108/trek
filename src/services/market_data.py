@@ -2,10 +2,9 @@ import time
 from decimal import Decimal
 from typing import List, Dict, Optional
 import yfinance
-from alembic.command import history
 from starlette.concurrency import run_in_threadpool
 
-from src.schemas import StockSearchResult, StockQuote
+from src.schemas import StockSearchResult, StockQuote, CandleStickBar
 
 # in memory cache
 _quote_cache : Dict[str, tuple[float, StockQuote]] = {}
@@ -86,3 +85,34 @@ async def get_stock_quote(stock_name:str) -> Optional[StockQuote]:
 
     return quote
 
+
+def _fetch_history_sync(
+    symbol: str, period: str = "1mo", interval: str = "1d"
+) -> List[dict]:
+    ticker = yfinance.Ticker(symbol)
+    df = ticker.history(period=period, interval=interval)
+
+    if df.empty:
+        return []
+
+    bars = []
+    is_intraday = interval in ("1m", "2m", "5m", "15m", "30m", "60m", "90m", "1h")
+
+    for idx, row in df.iterrows():
+        # Intraday requires integer seconds; Daily/Weekly requires "YYYY-MM-DD"
+        time_val = int(idx.timestamp()) if is_intraday else idx.strftime("%Y-%m-%d")
+
+        bars.append(
+            {
+                "time": time_val,
+                "open_price": round(float(row["Open"]), 2),
+                "high_price": round(float(row["High"]), 2),
+                "low_price": round(float(row["Low"]), 2),
+                "close_price": round(float(row["Close"]), 2),
+                "volume": int(row["Volume"]) if "Volume" in row else 0,
+            }
+        )
+    return bars
+
+async def get_stock_history(stock_name:str, period:str="1mo", interval:str="1d") -> List[CandleStickBar]:
+    return await run_in_threadpool(_fetch_history_sync, stock_name, period, interval)

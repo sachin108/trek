@@ -12,7 +12,7 @@ from src.services.trading import execute_market_order
 
 router = APIRouter(prefix="/orders", tags=["Orders & Trading"])
 
-@router.post("", response_model=OrderResponse ,status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=OrderResponse ,status_code=status.HTTP_201_CREATED)
 async def place_order(order: OrderCreate,
                       current_user: Annotated[User, Depends(get_current_user)],
                       db: Annotated[Session, Depends(get_db)]):

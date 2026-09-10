@@ -145,6 +145,7 @@ stockSearchInput.oninput = (e) => {
             orderSymbol.value = item.symbol;
             searchResults.classList.add("hidden");
             stockSearchInput.value = "";
+            loadChartData(item.symbol, currentPeriod, currentInterval);
           };
           searchResults.appendChild(div);
         });
@@ -284,13 +285,139 @@ async function initApp() {
     navUsername.textContent = `${user.username}`;
     navUserInfo.classList.remove("hidden");
     authSection.classList.add("hidden");
+
+    // 1. Unhide dashboard FIRST so DOM has actual pixel dimensions
     dashboardSection.classList.remove("hidden");
 
+    // 2. Initialize chart and load data
+    initTradingViewChart();
+    loadChartData("AAPL", "1mo", "1d");
+
+    // 3. Load other dashboard tables
     loadPortfolio();
     loadOrders();
   } catch {
     logout();
   }
 }
+
+let chartInstance = null;
+let candleSeries = null;
+let currentChartSymbol = "AAPL";
+let currentPeriod = "1mo";
+let currentInterval = "1d";
+
+function initTradingViewChart() {
+  const container = document.getElementById("chart-container");
+  if (!container || chartInstance) return;
+
+  chartInstance = LightweightCharts.createChart(container, {
+    width: container.clientWidth || 600,
+    height: 380,
+    layout: {
+      background: { color: "#1e293b" },
+      textColor: "#94a3b8",
+    },
+    grid: {
+      vertLines: { color: "#334155" },
+      horzLines: { color: "#334155" },
+    },
+    timeScale: {
+      borderColor: "#334155",
+      timeVisible: true,
+      secondsVisible: false,
+    },
+    rightPriceScale: {
+      borderColor: "#334155",
+    },
+  });
+
+  const seriesOptions = {
+    upColor: "#22c55e",
+    downColor: "#ef4444",
+    borderDownColor: "#ef4444",
+    borderUpColor: "#22c55e",
+    wickDownColor: "#ef4444",
+    wickUpColor: "#22c55e",
+  };
+
+  // Compatible with both v3 and v4/v5
+  if (typeof chartInstance.addCandlestickSeries === "function") {
+    candleSeries = chartInstance.addCandlestickSeries(seriesOptions);
+  } else {
+    candleSeries = chartInstance.addSeries(LightweightCharts.CandlestickSeries, seriesOptions);
+  }
+
+  new ResizeObserver((entries) => {
+    if (entries.length && chartInstance) {
+      chartInstance.applyOptions({
+        width: entries[0].contentRect.width,
+      });
+    }
+  }).observe(container);
+}
+
+async function loadChartData(symbol, period = "1mo", interval = "1d") {
+  currentChartSymbol = symbol.toUpperCase();
+  currentPeriod = period;
+  currentInterval = interval;
+
+  const titleEl = document.getElementById("chart-symbol-title");
+  if (titleEl) titleEl.textContent = currentChartSymbol;
+
+  try {
+    const res = await api(`/stocks/${currentChartSymbol}/history?period=${period}&interval=${interval}`);
+    if (!res.ok) return;
+
+    const bars = await res.json();
+    if (!bars || bars.length === 0) {
+      console.warn("No bar data received for", symbol);
+      return;
+    }
+
+    // Deduplicate by time key
+    const timeMap = new Map();
+    bars.forEach((b) => {
+      timeMap.set(b.time, {
+        time: b.time,
+        open: parseFloat(b.open_price),
+        high: parseFloat(b.high_price),
+        low: parseFloat(b.low_price),
+        close: parseFloat(b.close_price),
+      });
+    });
+
+    const formattedData = Array.from(timeMap.values()).sort((a, b) => {
+      if (typeof a.time === "number") return a.time - b.time;
+      return a.time.localeCompare(b.time);
+    });
+
+    if (candleSeries && chartInstance) {
+      candleSeries.setData(formattedData);
+
+      // Auto-fit both axes so candles are brought into view
+      chartInstance.timeScale().fitContent();
+      chartInstance.priceScale("right").applyOptions({
+        autoScale: true,
+      });
+
+      const lastBar = formattedData[formattedData.length - 1];
+      const priceTag = document.getElementById("chart-price-tag");
+      if (priceTag && lastBar) {
+        priceTag.textContent = `$${fmt(lastBar.close)}`;
+      }
+    }
+  } catch (err) {
+    console.error("Failed to load chart data:", err);
+  }
+}
+// Bind timeframe buttons
+document.querySelectorAll(".tf-btn").forEach((btn) => {
+  btn.onclick = (e) => {
+    document.querySelectorAll(".tf-btn").forEach((b) => b.classList.remove("active"));
+    e.target.classList.add("active");
+    loadChartData(currentChartSymbol, e.target.dataset.period, e.target.dataset.interval);
+  };
+});
 
 initApp();

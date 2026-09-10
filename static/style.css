@@ -68,3 +68,45 @@ th { color: var(--text-muted); font-weight: 500; }
 
 .error-msg { color: var(--accent-red); margin-top: 0.5rem; font-size: 0.85rem; text-align: center; }
 .feedback-msg { margin-top: 0.5rem; font-size: 0.85rem; text-align: center; }
+
+/* Chart Layout */
+.chart-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chart-title-group {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.chart-timeframes {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.tf-btn {
+  background: #0f172a;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.tf-btn.active, .tf-btn:hover {
+  color: #fff;
+  border-color: var(--accent-blue);
+  background: #1e293b;
+}

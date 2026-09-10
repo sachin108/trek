@@ -1,6 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional, List
+from typing import Optional, List, Union
 
 from pydantic import BaseModel, Field, EmailStr, ConfigDict, field_validator, ValidationError
 from pydantic_core import PydanticCustomError
@@ -112,4 +112,12 @@ class OrderResponse(BaseModel):
             populate_by_name=True,  # Allows using 'order_id' or 'id' during manual init
         )
     '''
+
+class CandleStickBar(BaseModel):
+    time : Union[int, str]
+    open_price : Decimal
+    high_price : Decimal
+    low_price : Decimal
+    close_price : Decimal
+    volume : Optional[int] = None
 

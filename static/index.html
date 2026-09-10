@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Paper Trading</title>
   <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://unpkg.com/lightweight-charts@4.2.1/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
   <header class="navbar">
@@ -94,7 +95,21 @@
             <div id="order-feedback" class="feedback-msg"></div>
           </form>
         </section>
-
+        <section class="card chart-panel">
+          <div class="chart-header">
+            <div class="chart-title-group">
+              <h2 id="chart-symbol-title">AAPL</h2>
+              <span id="chart-price-tag" class="metric-value">$0.00</span>
+            </div>
+            <div class="chart-timeframes">
+              <button class="tf-btn" data-period="5d" data-interval="15m">5D</button>
+              <button class="tf-btn active" data-period="1mo" data-interval="1d">1M</button>
+              <button class="tf-btn" data-period="6mo" data-interval="1d">6M</button>
+              <button class="tf-btn" data-period="1y" data-interval="1wk">1Y</button>
+            </div>
+          </div>
+          <div id="chart-container" style="height: 380px; position: relative;"></div>
+        </section>
         <!-- Current Holdings Table -->
         <section class="card holdings-panel">
           <h2>Your Holdings</h2>
