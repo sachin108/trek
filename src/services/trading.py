@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from src.models import User, Holding, Order
+from src.models import User, Holding, Order, OrderStatus, OrderExecutionType
 from src.schemas import OrderCreate
 from src.services.market_data import get_stock_quote
 
@@ -53,6 +53,7 @@ async def execute_market_order(user_id:int, order:OrderCreate, db:Session) -> Or
                 symbol=stock_name,
                 quantity=order.quantity,
                 average_price=execution_price,
+                exchange=order.stock_exchange,
             )
             db.add(new_holding)
 
@@ -76,8 +77,9 @@ async def execute_market_order(user_id:int, order:OrderCreate, db:Session) -> Or
         user_id=user.id,
         symbol=stock_name,
         order_type=order.order_type,
-        status=order.COMPLETED,
-        execution_type=order.MARKET,
+        status=OrderStatus.COMPLETED,
+        execution_type=OrderExecutionType.MARKET,
+        stock_exchange=order.stock_exchange,
         quantity=order.quantity,
         execution_price=execution_price,
         total_amount=total_cost,

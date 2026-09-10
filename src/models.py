@@ -71,7 +71,7 @@ class Order(TimeStamp):
 
     completed_at : Mapped[datetime] = mapped_column(DateTime(timezone=True))
     user : Mapped[User] = relationship("User", back_populates="orders")
-
+    stock_exchange : Mapped[str] = mapped_column(String(6))
     __table_args__ = (
         Index("index_order_user_status", "user_id", "status"),
     )

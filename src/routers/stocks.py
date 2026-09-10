@@ -1,12 +1,12 @@
 from typing import Annotated, List
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, status
 from fastapi.params import Query, Depends
 
 from src.dependencies import get_current_user
 from src.models import User
-from src.schemas import StockSearchResult
-from src.services.market_data import search_stocks
+from src.schemas import StockSearchResult, StockQuote
+from src.services.market_data import search_stocks, get_stock_quote
 
 router = APIRouter(prefix="/stocks", tags=["Stocks & Market Data"])
 
@@ -17,3 +17,11 @@ async def search(
 ):
     results = await search_stocks(stock_name=q)
     return results
+
+@router.get("/{symbol}/quote", response_model=StockQuote)
+async def get_quote(symbol:str, current_user: Annotated[User, Depends(get_current_user)]):
+    stock_data= await get_stock_quote(symbol)
+    if not stock_data:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Quote not found for ticker '{symbol.upper()}'. Make sure the symbol is valid.",)
+    return stock_data

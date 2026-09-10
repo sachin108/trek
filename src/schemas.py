@@ -80,7 +80,7 @@ class OrderCreate(BaseModel):
     limit_price: Optional[Decimal] = Field(..., gt=0)
 
 class OrderResponse(BaseModel):
-    order_id: int
+    id: int
     symbol: str
     order_type: OrderType
     execution_type: OrderExecutionType
@@ -90,9 +90,23 @@ class OrderResponse(BaseModel):
     limit_price: Optional[Decimal]
     total_amount: Optional[Decimal]
     created_at: datetime
-    filled_at: Optional[datetime]
+    completed_at: Optional[datetime]
 
     model_config = ConfigDict(from_attributes=True)
-
-
+    '''
+    field names must match in Pydantic Schema and models if from_attributes=True,
+    bcz it reads data using Python's getattr(orm_object, field_name). If ORM model 
+    has id and Pydantic schema expects order_id, Pydantic looks for orm_obj.order_id, 
+    fails to find it, and raises a ResponseValidationError.    
+    
+    or 
+    
+    class OrderResponse(BaseModel):
+        order_id: int = Field(validation_alias="id")  # Reads 'id' from SQLAlchemy model
+    
+        model_config = ConfigDict(
+            from_attributes=True,
+            populate_by_name=True,  # Allows using 'order_id' or 'id' during manual init
+        )
+    '''
 
