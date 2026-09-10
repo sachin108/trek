@@ -228,11 +228,11 @@ async function loadPortfolio() {
     row.innerHTML = `
       <td><strong>${h.symbol}</strong></td>
       <td>${parseFloat(h.quantity)}</td>
-      <td>$${fmt(h.average_buy_price)}</td>
+      <td>$${fmt(h.average_price)}</td>
       <td>$${fmt(h.current_price)}</td>
       <td>$${fmt(h.market_value)}</td>
       <td class="${isPos ? "pos" : "neg"}">${isPos ? "+" : ""}$${fmt(h.unrealized_pnl)}</td>
-      <td class="${isPos ? "pos" : "neg"}">${isPos ? "+" : ""}${fmt(h.unrealized_pnl_percent)}%</td>
+      <td class="${isPos ? "pos" : "neg"}">${isPos ? "+" : ""}${fmt(h.unrealized_pnl_percentage)}%</td>
     `;
     tbody.appendChild(row);
   });
