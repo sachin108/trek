@@ -238,35 +238,137 @@ async function loadPortfolio() {
   });
 }
 
+let orderPageState = {
+  page: 1,
+  pageSize: 10,
+  totalPages: 1,
+  totalRecords: 0,
+  symbol: "",
+  side: "",
+  status: "",
+};
+
 async function loadOrders() {
-  const res = await api("/orders?limit=20");
-  if (!res.ok) return;
-  const orders = await res.json();
-
   const tbody = document.getElementById("orders-tbody");
-  tbody.innerHTML = "";
+  if (!tbody) return;
 
-  if (orders.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">No trade history.</td></tr>`;
-    return;
+  const params = new URLSearchParams({
+    page: String(orderPageState.page),
+    page_size: String(orderPageState.pageSize),
+  });
+
+  // Only append if there is actual content
+  if (orderPageState.symbol && orderPageState.symbol.trim() !== "") {
+    params.append("symbol", orderPageState.symbol.trim());
+  }
+  if (orderPageState.side && orderPageState.side.trim() !== "") {
+    params.append("order_side", orderPageState.side.trim());
+  }
+  if (orderPageState.status && orderPageState.status.trim() !== "") {
+    params.append("status", orderPageState.status.trim());
   }
 
-  orders.forEach((o) => {
-    const dateStr = new Date(o.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${dateStr}</td>
-      <td><strong>${o.symbol}</strong></td>
-      <td class="${o.side === "BUY" ? "badge-buy" : "badge-sell"}">${o.side}</td>
-      <td>${parseFloat(o.quantity)}</td>
-      <td>$${fmt(o.execution_price)}</td>
-      <td>$${fmt(o.total_amount)}</td>
-      <td>${o.status}</td>
-    `;
-    tbody.appendChild(row);
-  });
+  try {
+    const res = await api(`/orders?${params.toString()}`);
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({ detail: "Unknown server error" }));
+      tbody.innerHTML = `<tr><td colspan="9" class="empty-state neg">Failed to load orders: ${JSON.stringify(errData.detail || res.statusText)}</td></tr>`;
+      return;
+    }
+
+    const data = await res.json();
+    const items = data.items || [];
+    const total = data.total ?? items.length;
+    const totalPages = data.total_pages ?? 1;
+    const currentPage = data.page ?? 1;
+
+    orderPageState.totalPages = totalPages;
+    orderPageState.totalRecords = total;
+
+    const info = document.getElementById("pagination-info");
+    if (info) info.textContent = `Page ${currentPage} of ${totalPages} (${total} total orders)`;
+
+    const prevBtn = document.getElementById("btn-prev-page");
+    if (prevBtn) prevBtn.disabled = currentPage <= 1;
+
+    const nextBtn = document.getElementById("btn-next-page");
+    if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+
+    tbody.innerHTML = "";
+
+    if (items.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="9" class="empty-state">No orders found.</td></tr>`;
+      return;
+    }
+
+ items.forEach((o) => {
+      const dt = new Date(o.created_at);
+      const dateStr = dt.toLocaleDateString([], { month: "short", day: "numeric" });
+      const timeStr = dt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+      // Safely extract side and status as uppercase strings
+      const sideRaw = (typeof o.side === "object" && o.side !== null) ? o.side.value : o.side;
+        const side = String(o.order_side || o.side || "").toUpperCase();
+      const statusRaw = (typeof o.status === "object" && o.status !== null) ? o.status.value : o.status;
+      const status = String(statusRaw || "FILLED").toUpperCase();
+
+      const badgeClass = `badge-${status.toLowerCase()}`;
+      const sideClass = side === "BUY" ? "badge-buy" : "badge-sell";
+
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td class="text-muted">#${o.id}</td>
+        <td>${dateStr} <span class="text-muted">${timeStr}</span></td>
+        <td><strong>${o.symbol}</strong></td>
+        <td class="${sideClass}">${side || "—"}</td>
+        <td>${o.order_type || "MARKET"}</td>
+        <td>${parseFloat(o.quantity)}</td>
+        <td>${o.execution_price ? `$${fmt(o.execution_price)}` : "—"}</td>
+        <td>${o.total_amount ? `$${fmt(o.total_amount)}` : "—"}</td>
+        <td><span class="badge ${badgeClass}">${status}</span></td>
+      `;
+      tbody.appendChild(row);
+    });
+  } catch (err) {
+    console.error("Failed to load orders:", err);
+    tbody.innerHTML = `<tr><td colspan="9" class="empty-state neg">Error: ${err.message}</td></tr>`;
+  }
 }
 
+// ---------------- Order Filter & Pagination Listeners ---------------- //
+
+document.getElementById("btn-filter-apply").onclick = () => {
+  orderPageState.symbol = document.getElementById("filter-order-symbol").value.trim();
+  orderPageState.side = document.getElementById("filter-order-side").value;
+  orderPageState.status = document.getElementById("filter-order-status").value;
+  orderPageState.page = 1;
+  loadOrders();
+};
+
+document.getElementById("btn-filter-reset").onclick = () => {
+  document.getElementById("filter-order-symbol").value = "";
+  document.getElementById("filter-order-side").value = "";
+  document.getElementById("filter-order-status").value = "";
+  orderPageState.symbol = "";
+  orderPageState.side = "";
+  orderPageState.status = "";
+  orderPageState.page = 1;
+  loadOrders();
+};
+
+document.getElementById("btn-prev-page").onclick = () => {
+  if (orderPageState.page > 1) {
+    orderPageState.page--;
+    loadOrders();
+  }
+};
+
+document.getElementById("btn-next-page").onclick = () => {
+  if (orderPageState.page < orderPageState.totalPages) {
+    orderPageState.page++;
+    loadOrders();
+  }
+};
 // ---------------- App Bootstrap ---------------- //
 
 async function initApp() {

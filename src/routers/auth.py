@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, status, HTTPException
 from fastapi.params import Depends
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, func
 from sqlalchemy.orm import Session
 from src.database import get_db
 from src.dependencies import get_current_user
@@ -37,7 +37,14 @@ def signup(user:UserCreate, db:Annotated[Session, Depends(get_db)]):
 def login(db:Annotated[Session, Depends(get_db)], form_data:Annotated[OAuth2PasswordRequestForm, Depends()]):
     # When a route uses OAuth2PasswordRequestForm, FastAPI strictly expects the incoming request to be form data
     try:
-        user = db.scalar(select(User).where(or_(User.username == form_data.username, User.email == form_data.username)))
+        user = db.scalar(
+            select(User).where(
+                or_(
+                    User.username.ilike(form_data.username),
+                    User.email.ilike(form_data.username)
+                )
+            )
+        )
         if not user or not verify_password(form_data.password, str(user.password)):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                 detail="Incorrect username or password",

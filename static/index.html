@@ -135,27 +135,61 @@
       </div>
 
       <!-- Order Ledger History -->
-      <section class="card order-history-panel">
+<!-- Order Audit History -->
+    <section class="card order-history-panel">
+      <div class="panel-header">
         <h2>Order Audit History</h2>
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Symbol</th>
-                <th>Side</th>
-                <th>Shares</th>
-                <th>Execution Price</th>
-                <th>Total Value</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="orders-tbody">
-              <tr><td colspan="7" class="empty-state">No orders yet.</td></tr>
-            </tbody>
-          </table>
+
+        <!-- Filter Toolbar -->
+        <div class="audit-toolbar">
+          <input type="text" id="filter-order-symbol" placeholder="Filter symbol..." style="width: 140px;" />
+          <select id="filter-order-side">
+            <option value="">All Sides</option>
+            <option value="BUY">BUY</option>
+            <option value="SELL">SELL</option>
+          </select>
+          <select id="filter-order-status">
+            <option value="">All Statuses</option>
+            <option value="FILLED">FILLED</option>
+            <option value="PENDING">PENDING</option>
+            <option value="CANCELLED">CANCELLED</option>
+            <option value="REJECTED">REJECTED</option>
+          </select>
+          <button id="btn-filter-apply" class="btn-secondary">Filter</button>
+          <button id="btn-filter-reset" class="btn-secondary">Reset</button>
         </div>
-      </section>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Placed At</th>
+              <th>Symbol</th>
+              <th>Side</th>
+              <th>Type</th>
+              <th>Shares</th>
+              <th>Execution Price</th>
+              <th>Total Cost</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="orders-tbody">
+            <tr><td colspan="9" class="empty-state">Loading order history...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Controls -->
+      <div class="pagination-footer">
+        <span id="pagination-info" class="text-muted">Page 1 of 1 (0 total)</span>
+        <div class="pagination-buttons">
+          <button id="btn-prev-page" class="btn-secondary" disabled>&larr; Prev</button>
+          <button id="btn-next-page" class="btn-secondary" disabled>Next &rarr;</button>
+        </div>
+      </div>
+    </section>
     </div>
   </main>
 

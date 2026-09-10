@@ -95,7 +95,7 @@ class OrderResponse(BaseModel):
     created_at: datetime
     completed_at: Optional[datetime]
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, use_enum_values=True)
     '''
     field names must match in Pydantic Schema and models if from_attributes=True,
     bcz it reads data using Python's getattr(orm_object, field_name). If ORM model 
@@ -121,3 +121,10 @@ class CandleStickBar(BaseModel):
     close_price : Decimal
     volume : Optional[int] = None
 
+class OrderHistoryResponse(BaseModel):
+    items: List[OrderResponse]
+    total : int
+    page : int
+    page_size: int
+    total_pages: int
+    model_config = ConfigDict(from_attributes=True)
